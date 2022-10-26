@@ -8,11 +8,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BlogController extends AbstractController
 {
-    #[Route('/blog', name: 'app_blog')]
+    #[Route('/blog', name: 'blog')]
     public function index(): Response
     {
-        return $this->render('blog/index.html.twig', [
-            'controller_name' => 'BlogController',
-        ]);
+        return $this->render('blog/blog.html.twig', []);
     }
+
+    #[Route('/single_post', name: 'single_post')]
+    public function single_post(): Response{
+        return $this->render('blog/single_post.html.twig', []);
+    }
+
 }
