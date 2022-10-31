@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace App\Pagination;
+namespace App\Paginator;
 
 use Doctrine\ORM\QueryBuilder as DoctrineQueryBuilder;
 use Doctrine\ORM\Tools\Pagination\CountWalker;

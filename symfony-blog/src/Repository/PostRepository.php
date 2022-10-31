@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Post;
-use App\Pagination\Paginator;
+use App\Paginator\Paginator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
@@ -48,7 +48,7 @@ class PostRepository extends ServiceEntityRepository
     public function findAllPaginated(int $page): Paginator
     {
         $qb =  $this->createQueryBuilder('p')
-            ->orderBy('p.PublishedAt', 'DESC')            
+            ->orderBy('p.publishedAt', 'DESC')            
         ;
         
         return (new Paginator($qb))->paginate($page);
