@@ -16,6 +16,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 class BlogController extends AbstractController
 {
+
+
     /**
      * @Route("/blog/{page<\d+>}", name="blog")
      */
@@ -23,7 +25,6 @@ class BlogController extends AbstractController
     {
         $repository = $doctrine->getRepository(Post::class);
         $posts = $repository->findAllPaginated($page);
-        
         return $this->render('blog/blog.html.twig', [
             'posts' => $posts,
         ]);
@@ -31,10 +32,15 @@ class BlogController extends AbstractController
 
     
     /**
-     * @Route("/blog/single_post", name="single_post")
+     * @Route("/single_post/{slug}", name="single_post")
      */
-    public function single_post(): Response{
-        return $this->render('blog/single_post.html.twig');
+    public function post(ManagerRegistry $doctrine, $slug): Response
+    {
+        $repositorio = $doctrine->getRepository(Post::class);
+        $post = $repositorio->findOneBy(["slug"=>$slug]);
+        return $this->render('blog/single_post.html.twig', [
+            'post' => $post,
+        ]);
     }
 
     /**
