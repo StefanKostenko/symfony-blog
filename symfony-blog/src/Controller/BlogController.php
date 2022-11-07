@@ -30,18 +30,51 @@ class BlogController extends AbstractController
         ]);
     }
 
-    
     /**
      * @Route("/single_post/{slug}", name="single_post")
      */
-    public function post(ManagerRegistry $doctrine, $slug): Response
+    public function post(ManagerRegistry $doctrine, Request $request, $slug): Response
     {
-        $repositorio = $doctrine->getRepository(Post::class);
-        $post = $repositorio->findOneBy(["slug"=>$slug]);
+        $repository = $doctrine->getRepository(Post::class);
+        $post = $repository->findOneBy(["slug"=>$slug]);
+        $recents = $repository->findRecents();
+        $comment = new Comment();
+        $form = $this->createForm(CommentFormType::class, $comment);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $comment = $form->getData(); 
+            $comment->setPost($post);  
+            //Aumentamos en 1 el número de comentarios del post
+            $post->setNumComments($post->getNumComments() + 1);
+            $entityManager = $doctrine->getManager();    
+            $entityManager->persist($comment);
+            $entityManager->flush();
+            return $this->redirectToRoute('single_post', ["slug" => $post->getSlug()]);
+        }
         return $this->render('blog/single_post.html.twig', [
             'post' => $post,
+            'recents' => $recents,
+            'commentForm' => $form->createView()
         ]);
     }
+
+    /**
+     * @Route("/single_post/{slug}/like", name="post_like")
+     */
+    public function like(ManagerRegistry $doctrine, Request $request, $slug): Response
+    {
+        $repository = $doctrine->getRepository(Post::class);
+        $post = $repository->findOneBy(["Slug"=>$slug]);
+        if ($post){
+            $post->setNumLikes($post->getNumLikes() + 1);
+            $entityManager = $doctrine->getManager();    
+            $entityManager->persist($post);
+            $entityManager->flush();
+        }
+        return $this->redirectToRoute('single_post', ["slug" => $post->getSlug()]);
+
+    }
+
 
     /**
      * @Route("/blog/new", name="new_post")
@@ -74,7 +107,7 @@ class BlogController extends AbstractController
         
             $post = $form->getData();   
             $post->setSlug($slugger->slug($post->getTitle()));
-            $post->getPostUser($this->getUser());
+            $post->setPostUser($this->getUser());
             $post->setNumLikes(0);
             $post->setNumComments(0);
             $entityManager = $doctrine->getManager();    
@@ -86,5 +119,22 @@ class BlogController extends AbstractController
             'form' => $form->createView()    
         ));
     }
+
+    /**
+     * @Route("/blog/buscar/{page}", name="blog_buscar")
+     */
+    public function buscar(ManagerRegistry $doctrine,  Request $request, int $page = 1): Response
+    {
+        $repository = $doctrine->getRepository(Post::class);
+        $searchTerm = $request->query->get('searchTerm', '');
+        $posts = $repository->findByTextPaginated($page, $searchTerm);
+        $recents = $repository->findRecents();
+        return $this->render('blog/blog.html.twig', [
+            'posts' => $posts,
+            'recents' => $recents,
+            'searchTerm' => $searchTerm
+        ]);
+    }
+
 
 }
